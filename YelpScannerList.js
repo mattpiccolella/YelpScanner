@@ -28,9 +28,11 @@ class YelpScannerList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      dataSource: ds.cloneWithRowsAndSections(
-        {"section1" : {"r1" : {"name" : "row1"}, "r2" : {"name" : "row2"}}}
-      ),
+      dataSource: new ListView.DataSource({
+        rowHasChanged: (r1, r2) => r1 !== r2,
+        sectionHeaderHasChanged: (h1, h2) => h1 !== h2,
+      }),
+      data: {},
       loaded: false,
     };
   }
@@ -44,6 +46,7 @@ class YelpScannerList extends React.Component {
       .then((response) => response.json())
       .then((responseData) => {
         this.setState({
+          data: responseData.movies,
           dataSource: this.state.dataSource.cloneWithRowsAndSections({"movies":responseData.movies}),
           loaded: true,
         });
@@ -112,7 +115,14 @@ class YelpScannerList extends React.Component {
   }
 
   _search(text) {
-    // TODO: Fill this.
+    var regex = new RegExp(text, 'i');
+    var filterFn = (component) => regex.test(component.title);
+
+    this.setState({
+      dataSource: ds.cloneWithRowsAndSections({
+        "movies": this.state.data.filter(filterFn),
+      })
+    });
   }
 }
 
